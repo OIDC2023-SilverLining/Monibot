@@ -53,6 +53,22 @@ public class SlackAppConfig {
             ctx.respond(r -> r.responseType("in_channel").text(s));
             return ctx.ack();
         });
+        
+        app.command("/alert", (req, ctx)->{
+            SlashCommandPayload payload = req.getPayload();
+            String query = payload.getText();
+            ctx.respond(r -> r.responseType("in_channel").text("Alert 정상 등록 완료 되었습니다."));
+
+            String[] alert = query.split(" ");
+            if (alert[0].equals("insert")){
+                schedulerService.addToMap(alert);
+            }
+            if (alert[0].equals("delete")){
+                schedulerService.removeFromMap(alert[1]);
+            }
+
+            return ctx.ack();
+        });
 
         return app;
     }
