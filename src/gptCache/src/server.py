@@ -35,6 +35,16 @@ def get_db_cursor():
 class Entry(BaseModel):
     query: str
     answer: str
+    
+
+
+@app.on_event("startup")
+async def startup():
+    logger.info("server start")
+
+@app.on_event("shutdown")
+async def shutdown():
+    logger.info("server down")
 
 
 @app.get("/")
