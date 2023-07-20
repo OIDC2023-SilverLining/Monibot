@@ -7,9 +7,14 @@ from sentence_transformers import SentenceTransformer
 import sqlite3
 import sqlite_vss
 
+from utils import get_logger
+
 # model setup
 model = SentenceTransformer("distiluse-base-multilingual-cased-v1")
 distance_threshold = 0.1
+
+# logger setup
+logger = get_logger("server_log", "server.log")
 
 def get_query_embedding(query: str):
     return model.encode([query])[0]
@@ -34,7 +39,7 @@ class Entry(BaseModel):
 
 @app.get("/")
 def lookup_entries(query: str = ''):
-    print(query)
+    logger.info(f"query: {query}")
     _, cur = get_db_cursor()
 
     def get_nearnest_cache_row_id(query: str):
@@ -81,7 +86,7 @@ def lookup_entries(query: str = ''):
 @app.post("/")
 def append_new_entry(entry: Entry):
     db, cur = get_db_cursor()
-    print(entry.query, entry.answer)
+    logger.info(f"query: {entry.query}, answer: {entry.answer}")
     cur.execute("insert into caches values (?, ?, ?)", [entry.query, get_query_embedding(entry.query).tobytes(), entry.answer])
     cur.execute("insert into vss_caches(rowid, query_embedding) select rowid, query_embedding from caches")
     db.commit()
