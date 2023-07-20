@@ -35,7 +35,6 @@ def get_db_cursor():
 class Entry(BaseModel):
     query: str
     answer: str
-    
 
 
 @app.on_event("startup")
