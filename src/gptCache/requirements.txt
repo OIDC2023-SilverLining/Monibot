@@ -9,5 +9,5 @@ torchvision==0.15.2+cpu
 
 sentence-transformers==2.2.2
 fastapi
-uvicorn[standart]
+uvicorn[standard]
 sqlite_vss==0.1.0
