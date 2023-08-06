@@ -1,7 +1,5 @@
 package com.hello.slackApp.service;
 
-import com.newrelic.api.agent.Trace;
-
 import java.io.UnsupportedEncodingException;
 import com.hello.slackApp.model.Alert;
 import com.hello.slackApp.repository.AlertRepository;
@@ -23,7 +21,6 @@ public class SchedulerService {
     @Autowired
     private PrometheusService prometheusService;
 
-    @Trace(dispatcher = true)
     @Scheduled(fixedRate = 15000) // 5 seconds
     public void scheduledAlerts() {
         List<Alert> alerts = alertRepository.findAll();
