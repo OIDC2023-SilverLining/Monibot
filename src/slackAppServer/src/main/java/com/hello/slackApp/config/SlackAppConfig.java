@@ -1,10 +1,6 @@
 package com.hello.slackApp.config;
 
-import com.hello.slackApp.service.ChatgptService;
-import com.hello.slackApp.service.PrometheusService;
-import com.hello.slackApp.service.SlackAlertService;
-import com.hello.slackApp.service.SchedulerService;
-import com.hello.slackApp.service.LogFetcher;
+import com.hello.slackApp.service.*;
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload;
 import com.slack.api.bolt.App;
@@ -38,6 +34,9 @@ public class SlackAppConfig {
     @Autowired
     private PrometheusService prometheusService;
 
+    @Autowired
+    private GrafanaService grafanaService;
+
     private static final String WAIT_MESSAGE = ":robot_face: :speech_balloon: 잠시만 기다려주세요. ChatGPT가 답변을 작성하고 있습니다.";
 
     public SlackAppConfig(Environment env) {
@@ -50,18 +49,22 @@ public class SlackAppConfig {
         AppConfig appConfig = AppConfig.builder().singleTeamBotToken(token).signingSecret(signingSecret).build();
         App app = new App(appConfig);
 
-        app.command("/bot", (req, ctx)->{
+        app.command("/monitor", (req, ctx)->{
+
             SlashCommandPayload payload = req.getPayload();
             String userId = "<@" + payload.getUserId() + ">";
             String query = payload.getText();
+
             ctx.respond(r -> r.responseType("in_channel").text(":question: " + userId + "님의 질문 : " + query));
             ctx.respond(r -> r.responseType("in_channel").text(WAIT_MESSAGE));
             String gpt_resp = chatgptService.processSearch(query);
-            log.info(query);
 
             String metric_result = prometheusService.processQuery(gpt_resp);
             ctx.respond(r -> r.responseType("in_channel").text(gpt_resp));
             ctx.respond(r -> r.responseType("in_channel").text("요청 값은 다음과 같습니다: "+ metric_result));
+
+            String dashboard_url = grafanaService.getDashboardUrl(gpt_resp);
+            ctx.respond(r -> r.responseType("in_channel").text("대시보드 url은 다음과 같습니다: "+ dashboard_url));
             return ctx.ack();
         });
 
