@@ -4,6 +4,8 @@ import com.hello.slackApp.service.ChatgptService;
 import com.hello.slackApp.service.PrometheusService;
 import com.hello.slackApp.service.SlackAlertService;
 import com.hello.slackApp.service.SchedulerService;
+import com.hello.slackApp.service.LogFetcher;
+
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
@@ -29,6 +31,9 @@ public class SlackAppConfig {
 
     @Autowired
     private SchedulerService schedulerService;
+
+    @Autowired
+    private LogFetcher LogFetcher;
 
     @Autowired
     private PrometheusService prometheusService;
@@ -64,15 +69,32 @@ public class SlackAppConfig {
             SlashCommandPayload payload = req.getPayload();
             String query = payload.getText();
             ctx.respond(r -> r.responseType("in_channel").text("Alert 정상 등록 완료 되었습니다."));
-
+        
             String[] alert = query.split(" ");
             if (alert[0].equals("insert")){
-                schedulerService.addToMap(alert);
+                schedulerService.addToDatabase(alert);
             }
             if (alert[0].equals("delete")){
-                schedulerService.removeFromMap(alert[1]);
+                schedulerService.removeFromDatabase(alert[1]);
             }
+        
+            return ctx.ack();
+        });
 
+        app.command("/alert-loki", (req, ctx)->{
+            SlashCommandPayload payload = req.getPayload();
+            String query = payload.getText();
+
+            ctx.respond(r -> r.responseType("in_channel").text("Monitoring App이 정상 등록 완료 되었습니다."));
+        
+            String[] loki = query.split(" ");
+            if (loki[0].equals("insert")){
+                LogFetcher.addToDatabase(loki[1]);
+            }
+            if (loki[0].equals("delete")){
+                LogFetcher.removeFromDatabase(loki[1]);
+            }
+        
             return ctx.ack();
         });
 
