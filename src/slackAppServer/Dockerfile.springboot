@@ -1,0 +1,11 @@
+# 베이스 이미지로 OpenJDK 이미지 사용
+FROM openjdk:17-jdk-alpine
+
+# /app 디렉토리 생성
+WORKDIR /app
+
+# 로컬 시스템에서 jar 파일을 Docker 이미지 내에 복사
+COPY build/libs/slackApp-0.0.10-SNAPSHOT.jar /app
+
+# 컨테이너가 시작될 때 실행될 명령어 지정
+ENTRYPOINT ["java", "-jar", "/app/slackApp-0.0.10-SNAPSHOT.jar"]

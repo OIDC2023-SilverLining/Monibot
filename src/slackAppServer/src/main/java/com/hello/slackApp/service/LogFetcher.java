@@ -35,7 +35,7 @@ public class LogFetcher {
     @Scheduled(fixedRate = 45000)
     public void fetchLogs() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
-        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 5 sentences.";
+        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 1 sentences.";
 
 
         // Get all Loki labels from the database
@@ -46,7 +46,7 @@ public class LogFetcher {
             long now = Instant.now().toEpochMilli() * 1_000_000;
             long fifteenSecondsAgo = Instant.now().minus(15, ChronoUnit.SECONDS).toEpochMilli() * 1_000_000;
 
-            URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:3100/loki/api/v1/query_range")
+            URI uri = UriComponentsBuilder.fromHttpUrl("http://loki-loki-distributed-query-frontend.grafana-loki:3100/loki/api/v1/query_range")
                     .queryParam("query", "{app=\"" + appLabel + "\"}") // Modified line
                     .queryParam("start", fifteenSecondsAgo)
                     .queryParam("end", now)
