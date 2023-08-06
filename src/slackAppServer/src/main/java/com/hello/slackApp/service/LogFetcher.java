@@ -81,4 +81,22 @@ public class LogFetcher {
             }
         }
     }
+
+    public Loki createLokiAlertFromInput(String labelInput) {
+        String labelLokiInput = labelInput;
+        
+        return new Loki(labelLokiInput);
+    }
+
+    public void addToDatabase(String labelInput) {
+        Loki loki = createLokiAlertFromInput(labelInput);
+        alertLokiRepository.save(loki);
+    }
+
+    public void removeFromDatabase(String labelInput) {
+        Loki loki = alertLokiRepository.findByMetric(labelInput);
+        if (loki != null) {
+            alertLokiRepository.delete(loki.getLabel());
+        }
+    }
 }
