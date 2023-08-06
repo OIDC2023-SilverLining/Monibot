@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,14 +16,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.hello.slackApp.service.ChatgptService;
 import com.hello.slackApp.repository.AlertLokiRepository;
 import com.hello.slackApp.model.Loki;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @Service
 public class LogFetcher {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Value("${LOKI_SERVICE_URL}")
+    private String lokiServiceBaseUrl;
+
+    
     @Autowired
     private ChatgptService chatgptService;
 
@@ -37,6 +42,7 @@ public class LogFetcher {
         RestTemplate restTemplate = new RestTemplate();
         String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 1 sentences.";
 
+        String queryUrl = lokiServiceBaseUrl + "/loki/api/v1/query_range";
 
         // Get all Loki labels from the database
         List<Loki> lokis = alertLokiRepository.findAll();
@@ -46,8 +52,8 @@ public class LogFetcher {
             long now = Instant.now().toEpochMilli() * 1_000_000;
             long fifteenSecondsAgo = Instant.now().minus(15, ChronoUnit.SECONDS).toEpochMilli() * 1_000_000;
 
-            URI uri = UriComponentsBuilder.fromHttpUrl("http://loki-loki-distributed-query-frontend.grafana-loki:3100/loki/api/v1/query_range")
-                    .queryParam("query", "{app=\"" + appLabel + "\"}") // Modified line
+            URI uri = UriComponentsBuilder.fromHttpUrl(queryUrl)
+                    .queryParam("query", "{app=\"" + appLabel + "\"}")
                     .queryParam("start", fifteenSecondsAgo)
                     .queryParam("end", now)
                     .build()

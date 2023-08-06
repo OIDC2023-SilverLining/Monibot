@@ -24,12 +24,9 @@ spec:
       containers:
         - name: postgres
           image: custom-postgres:1.0
-          env:
-          - name: POSTGRES_USER
-            value: testuser
-          - name: POSTGRES_PASSWORD
-            value: testpass
-          - name: POSTGRES_DB
-            value: testdb
+          envFrom:
+          - configMapRef:
+              name: postgres-config
           ports:
           - containerPort: 5432
+
