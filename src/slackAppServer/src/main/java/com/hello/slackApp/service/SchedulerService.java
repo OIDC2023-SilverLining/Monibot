@@ -1,62 +1,85 @@
 package com.hello.slackApp.service;
 
-import com.hello.slackApp.model.AlertSchedulerHashValue;
+import com.newrelic.api.agent.Trace;
+
+import java.io.UnsupportedEncodingException;
+import com.hello.slackApp.model.Alert;
+import com.hello.slackApp.repository.AlertRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class SchedulerService {
-
-    private Map<String, AlertSchedulerHashValue> map = new HashMap<>();
-    private static final int TMP_RESULT = 21;
-    private static final int TMP_CNT = 5;
+    public int cnt = 0;
+    @Autowired
+    private AlertRepository alertRepository;
 
     @Autowired
     private SlackAlertService slackAlertService;
 
-    @Scheduled(fixedRate = 5000) // 5초마다 실행
-    public void incrementValuesAndLog() {
-        for(String key: map.keySet()) {
-            AlertSchedulerHashValue hashValue = map.get(key);
-            checkAndUpdateHashValue(hashValue, key);
+    @Autowired
+    private PrometheusService prometheusService;
+
+    @Trace(dispatcher = true)
+    @Scheduled(fixedRate = 15000) // 5 seconds
+    public void scheduledAlerts() {
+        List<Alert> alerts = alertRepository.findAll();
+        for (Alert alert : alerts) {
+            processAlert(alert);
         }
     }
 
-    private void checkAndUpdateHashValue(AlertSchedulerHashValue hashValue, String key) {
-        String flag = hashValue.getFlag();
-        int queryValue = Integer.parseInt(hashValue.getQueryValue());
-        int count = Integer.parseInt(hashValue.getCount());
-        int time = Integer.parseInt(hashValue.getTime());
+    private void processAlert(Alert alert) {
 
-        if ((flag.equals("up") && queryValue <= TMP_RESULT) || (flag.equals("down") && queryValue >= TMP_RESULT)) {
-            count++;
-            if (count >= time / TMP_CNT){
-                sendAlert(key, queryValue, flag.equals("up") ? "이상" : "이하");
+        try {
+            String metricResult = prometheusService.processQuery(alert.getMetric());
+            double metricResultDouble = Double.parseDouble(metricResult);
+            int queryValue = alert.getQueryValue(); // No need for Integer.parseInt()
+
+            if ((alert.getCondition().equals("up") && queryValue <= metricResultDouble)
+                    || (alert.getCondition().equals("down") && queryValue >= metricResultDouble)) {
+                alert.incrementCount();
+
+                int duration = Integer.parseInt(alert.getDuration());
+                if (alert.getCount() >= duration / 5) {
+                    sendAlert(alert, metricResultDouble);
+                    alert.resetCount();
+                }
             }
-        } else {
-            count = 0;
+
+        } catch (NumberFormatException | UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
-        hashValue.setCount(Integer.toString(count));
-        map.put(key, hashValue);
     }
 
-    private void sendAlert(String key, int queryValue, String condition) {
-        String[] alertQuery = {key, Integer.toString(queryValue), condition, Integer.toString(TMP_RESULT)};
+    private void sendAlert(Alert alert, double metricResultValue) {
+        String[] alertQuery = { alert.getType(), alert.getMetric(), alert.getCondition(),
+                Double.toString(metricResultValue) };
         slackAlertService.sendSlackNotification(alertQuery);
     }
 
-    // Map에 값 추가
-    public void addToMap(String[] alert) {
-        AlertSchedulerHashValue hashValue = new AlertSchedulerHashValue(alert[2], alert[3], "0", alert[4]);
-        map.put(alert[1], hashValue);
-    }
-    // Map에서 값 제거
-    public void removeFromMap(String key) {
-        map.remove(key);
+    public Alert createAlertFromInput(String[] alertInput) {
+        String type = alertInput[0];
+        String metric = alertInput[1];
+        String threshold = alertInput[2];
+        String condition = alertInput[3];
+        String duration = alertInput[4];
+
+        return new Alert(type, metric, threshold, condition, duration);
     }
 
+    public void addToDatabase(String[] alertInput) {
+        Alert alert = createAlertFromInput(alertInput);
+        alertRepository.save(alert);
+    }
+
+    public void removeFromDatabase(String metric) {
+        Alert alert = alertRepository.findByMetric(metric);
+        if (alert != null) {
+            alertRepository.delete(alert.getMetric());
+        }
+    }
 }
