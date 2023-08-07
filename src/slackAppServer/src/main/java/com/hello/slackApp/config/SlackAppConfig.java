@@ -5,8 +5,6 @@ import com.hello.slackApp.service.*;
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -18,12 +16,13 @@ import org.springframework.core.env.Environment;
 @PropertySource("classpath:application.properties")
 public class SlackAppConfig {
 
-    private final Logger log = LoggerFactory.getLogger(SlackAppConfig.class);
-
     private final String token;
     private final String signingSecret;
     @Autowired
     private ChatgptService chatgptService;
+
+    @Autowired
+    private GptCacheService gptCacheService;
 
     @Autowired
     private SchedulerService schedulerService;
@@ -57,13 +56,21 @@ public class SlackAppConfig {
 
             ctx.respond(r -> r.responseType("in_channel").text(":question: " + userId + "님의 질문 : " + query));
             ctx.respond(r -> r.responseType("in_channel").text(WAIT_MESSAGE));
-            String gpt_resp = chatgptService.processSearch(query);
 
-            String metric_result = prometheusService.processQuery(gpt_resp);
-            ctx.respond(r -> r.responseType("in_channel").text(gpt_resp));
+            String gptResponse = gptCacheService.getCachedResponse(query);
+            if (gptResponse == null) {
+                String gptPrompt ="앞의 요청 내용과 일치하는 promQL을 알려줘. Only answer promQl please. No need other explanations. Don’t even say yes. promQl에서 pod 이름을 전달하는 key는 pod_name에서 pod으로 변경됐다는 점에 유의해.";
+                gptResponse = chatgptService.processSearch(query+gptPrompt);
+                gptCacheService.setCachedResponse(query, gptResponse);
+            }
+
+            String finalGptResponse = gptResponse;
+            String metric_result = prometheusService.processQuery(finalGptResponse);
+
+            ctx.respond(r -> r.responseType("in_channel").text(finalGptResponse));
             ctx.respond(r -> r.responseType("in_channel").text("요청 값은 다음과 같습니다: "+ metric_result));
 
-            String dashboard_url = grafanaService.getDashboardUrl(gpt_resp);
+            String dashboard_url = grafanaService.getDashboardUrl(finalGptResponse);
             ctx.respond(r -> r.responseType("in_channel").text("대시보드 url은 다음과 같습니다: "+ dashboard_url));
             return ctx.ack();
         });
