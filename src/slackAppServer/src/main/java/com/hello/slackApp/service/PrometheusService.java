@@ -2,6 +2,7 @@ package com.hello.slackApp.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,7 +16,8 @@ import java.util.List;
 @Service
 public class PrometheusService {
 
-    private String prometheusUrl = "http://localhost:9090";
+    @Value("${PROMETHEUS_URL}")
+    private String prometheusUrl;
 
     public String processQuery(String query) throws UnsupportedEncodingException {
 
