@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: my-spring-app
-          image: slackapp:8.0
+          image: dbrudghks333/slackapp:8.0
           ports:
           - containerPort: 8080
           envFrom:
