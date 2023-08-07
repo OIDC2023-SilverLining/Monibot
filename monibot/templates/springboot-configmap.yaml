@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monibot-springboot
+data:
+  token: {{ .Values.token }}
+  signingSecret: {{ .Values.signingSecret }}
+  OPEN_AI_URL: https://api.openai.com/v1/chat/completions
+  OPEN_AI_KEY: {{ .Values.openAiKey }}
+  GRAFANA_URL: {{ .Values.grafanaUrl }}
+  PROMETHEUS_URL: {{ .Values.prometheusUrl }}
+  GRAFANA_TOKEN: {{ .Values.grafanaToken }} 
+  SLACK_WEBHOOK_URL: {{ .Values.slackWebhookUrl }}
+  LOKI_SERVICE_URL: {{ .Values.lokiServiceUrl }}
+  spring.datasource.url: jdbc:postgresql://monibot-postgres:5432/{{ .Values.postgresDb }}
+  spring.datasource.username: {{ .Values.postgresUser }}
+  spring.datasource.password: {{ .Values.postgresPassword }}
+  spring.datasource.driver-class-name: org.postgresql.Driver

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monibot-gptcache
+spec:
+  replicas: {{ .Values.gptcacheReplicas }}
+  selector:
+    matchLabels:
+      app: monibot-gptcache
+  template:
+    metadata:
+      labels:
+        app: monibot-gptcache
+    spec:
+      containers:
+        - name: monibot-gptcache
+          image: {{ .Values.gptcacheImageUrl }}
+          ports:
+          - containerPort: 80
