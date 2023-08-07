@@ -1,0 +1,24 @@
+# image urls
+springbootImageUrl: dbrudghks333/slackapp:8.0
+postgresImageUrl: dbrudghks333/custom-postgres:1.0
+gptcacheImageUrl: bshlab671/monibot:latest
+
+# springboot config
+token: {}
+signingSecret: {}
+openAiKey: {}
+grafanaUrl: {}
+prometheusUrl: {}
+grafanaToken: {}
+slackWebhookUrl: {}
+lokiServiceUrl: {}
+
+# replicas
+gptcacheReplicas: 1
+postgresReplicas: 1
+springbootReplicas: 1
+
+# postgres
+postgresUser: testuser
+postgresPassword: testpass
+postgresDb: testdb

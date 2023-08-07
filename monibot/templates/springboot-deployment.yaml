@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monibot-springboot
+spec:
+  replicas: {{ .Values.springbootReplicas }}
+  selector:
+    matchLabels:
+      app: monibot-springboot
+  template:
+    metadata:
+      labels:
+        app: monibot-springboot
+    spec:
+      containers:
+        - name: monibot-springboot
+          image: {{ .Values.springbootImageUrl }}
+          ports:
+          - containerPort: 8080
+          envFrom:
+          - configMapRef:
+              name: monibot-springboot

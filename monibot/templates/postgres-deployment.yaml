@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monibot-postgres
+spec:
+  replicas: {{ .Values.postgresReplicas }}
+  selector:
+    matchLabels:
+      app: monibot-postgres
+  template:
+    metadata:
+      labels:
+        app: monibot-postgres
+    spec:
+      containers:
+        - name: monibot-postgres
+          image: {{ .Values.postgresImageUrl }}
+          envFrom:
+          - configMapRef:
+              name: monibot-postgres
+          ports:
+          - containerPort: 5432
