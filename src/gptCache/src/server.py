@@ -97,6 +97,8 @@ def append_new_entry(entry: Entry):
     db, cur = get_db_cursor()
     logger.info(f"query: {entry.query}, answer: {entry.answer}")
     cur.execute("insert into caches values (?, ?, ?)", [entry.query, get_query_embedding(entry.query).tobytes(), entry.answer])
+    cur.execute("drop table if exists vss_caches")
+    cur.execute("create virtual table if not exists vss_caches using vss0(query_embedding(512))")
     cur.execute("insert into vss_caches(rowid, query_embedding) select rowid, query_embedding from caches")
     db.commit()
 
