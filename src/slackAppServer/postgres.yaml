@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: custom-postgres:1.0
+          image: dbrudghks333/custom-postgres:1.0
           envFrom:
           - configMapRef:
               name: postgres-config
