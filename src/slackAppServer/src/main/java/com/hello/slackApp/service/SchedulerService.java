@@ -53,8 +53,15 @@ public class SchedulerService {
     }
 
     private void sendAlert(Alert alert, double metricResultValue) {
-        String[] alertQuery = { alert.getType(), alert.getMetric(), alert.getCondition(),
-                Double.toString(metricResultValue) };
+        String conditionTmp = "";
+        if (alert.getCondition().equals("up")) {
+            conditionTmp = "이상";
+        }
+        else {
+            conditionTmp = "이하";
+        }
+        String[] alertQuery = { alert.getType(), alert.getMetric(), conditionTmp,
+                Double.toString(metricResultValue), alert.getThreshold() };
         slackAlertService.sendSlackNotification(alertQuery);
     }
 
