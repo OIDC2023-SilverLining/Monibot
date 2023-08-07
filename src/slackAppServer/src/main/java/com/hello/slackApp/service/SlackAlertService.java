@@ -9,7 +9,7 @@ import java.util.Map;
 @Service
 public class SlackAlertService {
 
-    @Value("${slack.webhook.url}")
+    @Value("${SLACK_WEBHOOK_URL}")
     private String webhookUrl;
 
     public void sendSlackNotification(String[] alertQuery) {
