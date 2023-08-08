@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-error-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-error-simulator
+  template:
+    metadata:
+      labels:
+        app: db-error-simulator
+    spec:
+      containers:
+        - name: db-error-simulator
+          image: dbrudghks333/db-error-simulator
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-error-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: file-error-simulator
+  template:
+    metadata:
+      labels:
+        app: file-error-simulator
+    spec:
+      containers:
+        - name: file-error-simulator
+          image: dbrudghks333/file-error-simulator
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-error-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-error-simulator
+  template:
+    metadata:
+      labels:
+        app: auth-error-simulator
+    spec:
+      containers:
+        - name: auth-error-simulator
+          image: dbrudghks333/auth-error-simulator

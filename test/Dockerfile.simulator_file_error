@@ -1,0 +1,10 @@
+FROM python:3.8
+
+WORKDIR /app
+
+COPY simulator_file_error.py .
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["python", "simulator_file_error.py"]
