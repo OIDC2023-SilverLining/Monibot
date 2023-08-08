@@ -108,4 +108,42 @@ public class SlackAlertService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
         restTemplate.postForEntity(webhookUrl, request, String.class);
     }
+
+    public void sendSlackNotificationMonitor(String gptResponse, String metricResult, String dashboardUrl){
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, Object> payload = new HashMap<>();
+        List<Map<String, Object>> blocks = new ArrayList<>();
+
+        // Title Section
+        Map<String, Object> titleSection = new HashMap<>();
+        titleSection.put("type", "header");
+        Map<String, Object> titleText = new HashMap<>();
+        titleText.put("type", "plain_text");
+        titleText.put("text", ":mega: Monitor Notification");
+        titleText.put("emoji", true);
+        titleSection.put("text", titleText);
+        blocks.add(titleSection);
+
+        // Divider
+        Map<String, Object> divider = new HashMap<>();
+        divider.put("type", "divider");
+        blocks.add(divider);
+
+        // Content Section
+        Map<String, Object> contentSection = new HashMap<>();
+        contentSection.put("type", "section");
+        Map<String, Object> contentText = new HashMap<>();
+        contentText.put("type", "mrkdwn");
+        contentText.put("text", ":robot_face: *GPT Answer* : \n"+ gptResponse + "\n:mag: *Metric* : \n" + metricResult +"\n:bar_chart: *Dashboard* : \n" + dashboardUrl);
+        contentSection.put("text", contentText);
+        blocks.add(contentSection);
+
+        payload.put("blocks", blocks);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+        restTemplate.postForEntity(webhookUrl, request, String.class);
+
+    }
 }

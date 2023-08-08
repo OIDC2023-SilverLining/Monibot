@@ -36,7 +36,10 @@ public class SlackAppConfig {
     @Autowired
     private GrafanaService grafanaService;
 
-    private static final String WAIT_MESSAGE = ":robot_face: :speech_balloon: 잠시만 기다려주세요. ChatGPT가 답변을 작성하고 있습니다.";
+    @Autowired
+    private SlackAlertService slackAlertService;
+
+    private static final String WAIT_MESSAGE = ":speech_balloon: 잠시만 기다려주세요. Monibot이 답변을 작성하고 있습니다.";
 
     public SlackAppConfig(Environment env) {
         this.token = env.getProperty("token");
@@ -51,9 +54,9 @@ public class SlackAppConfig {
         app.command("/monitor", (req, ctx)->{
 
             SlashCommandPayload payload = req.getPayload();
+
             String userId = "<@" + payload.getUserId() + ">";
             String query = payload.getText();
-
             ctx.respond(r -> r.responseType("in_channel").text(":question: " + userId + "님의 질문 : " + query));
             ctx.respond(r -> r.responseType("in_channel").text(WAIT_MESSAGE));
 
@@ -65,13 +68,10 @@ public class SlackAppConfig {
             }
 
             String finalGptResponse = gptResponse;
-            String metric_result = prometheusService.processQuery(finalGptResponse);
+            String metricResult = prometheusService.processQuery(finalGptResponse);
+            String dashboardUrl = grafanaService.getDashboardUrl(finalGptResponse);
+            slackAlertService.sendSlackNotificationMonitor(finalGptResponse, metricResult, dashboardUrl);
 
-            ctx.respond(r -> r.responseType("in_channel").text(finalGptResponse));
-            ctx.respond(r -> r.responseType("in_channel").text("요청 값은 다음과 같습니다: "+ metric_result));
-
-            String dashboard_url = grafanaService.getDashboardUrl(finalGptResponse);
-            ctx.respond(r -> r.responseType("in_channel").text("대시보드 url은 다음과 같습니다: "+ dashboard_url));
             return ctx.ack();
         });
 
