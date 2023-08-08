@@ -13,14 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.hello.slackApp.service.ChatgptService;
 import com.hello.slackApp.repository.AlertLokiRepository;
 import com.hello.slackApp.model.Loki;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
-public class LogFetcher {
+public class LokiLogFetchService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,7 +39,7 @@ public class LogFetcher {
     @Scheduled(fixedRate = 45000)
     public void fetchLogs() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
-        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 1 sentences.";
+        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 3 sentences.";
 
         String queryUrl = lokiServiceBaseUrl + "/loki/api/v1/query_range";
 
