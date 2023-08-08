@@ -43,7 +43,7 @@ public class SlackAlertService {
         section1.put("type", "section");
         Map<String, Object> text1 = new HashMap<>();
         text1.put("type", "mrkdwn");
-        text1.put("text", ":chart_with_upwards_trend: *Metric:* " + alertQuery[1] + "\n:mag: *Value:* " + alertQuery[3]);
+        text1.put("text", ":dart: *Metric Name:* " + alertQuery[1] + "\n:mag: *Metric Value:* " + alertQuery[3]);
         section1.put("text", text1);
         blocks.add(section1);
 
@@ -97,7 +97,7 @@ public class SlackAlertService {
         gptAnswerSection.put("type", "section");
         Map<String, Object> gptAnswerText = new HashMap<>();
         gptAnswerText.put("type", "mrkdwn");
-        gptAnswerText.put("text", ":robot_face: *gpt answer* : \n" + lokiResponse);
+        gptAnswerText.put("text", ":robot_face: *GPT Answer* : \n" + lokiResponse);
         gptAnswerSection.put("text", gptAnswerText);
         blocks.add(gptAnswerSection);
 
@@ -134,7 +134,7 @@ public class SlackAlertService {
         contentSection.put("type", "section");
         Map<String, Object> contentText = new HashMap<>();
         contentText.put("type", "mrkdwn");
-        contentText.put("text", ":robot_face: *GPT Answer* : \n"+ gptResponse + "\n:mag: *Metric* : \n" + metricResult +"\n:bar_chart: *Dashboard* : \n" + dashboardUrl);
+        contentText.put("text", ":robot_face: *GPT Answer* : \n"+ gptResponse + "\n:mag: *Metric Value* : \n" + metricResult +"\n:bar_chart: *Dashboard* : \n" + dashboardUrl);
         contentSection.put("text", contentText);
         blocks.add(contentSection);
 

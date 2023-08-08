@@ -28,7 +28,7 @@ public class SlackAppConfig {
     private SchedulerService schedulerService;
 
     @Autowired
-    private LogFetcher LogFetcher;
+    private LokiLogFetchService LokiLogFetchService;
 
     @Autowired
     private PrometheusService prometheusService;
@@ -75,17 +75,18 @@ public class SlackAppConfig {
             return ctx.ack();
         });
 
-        app.command("/alert", (req, ctx)->{
+        app.command("/alert-metric", (req, ctx)->{
             SlashCommandPayload payload = req.getPayload();
             String query = payload.getText();
-            ctx.respond(r -> r.responseType("in_channel").text("Alert 정상 등록 완료 되었습니다."));
         
             String[] alert = query.split(" ");
             if (alert[0].equals("insert")){
                 schedulerService.addToDatabase(alert);
+                ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Alert Metric이 정상적으로 등록 완료되었습니다."));
             }
             if (alert[0].equals("delete")){
                 schedulerService.removeFromDatabase(alert[1]);
+                ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Alert Metric이 정상적으로 삭제 완료되었습니다."));
             }
         
             return ctx.ack();
@@ -95,14 +96,15 @@ public class SlackAppConfig {
             SlashCommandPayload payload = req.getPayload();
             String query = payload.getText();
 
-            ctx.respond(r -> r.responseType("in_channel").text("Monitoring App이 정상 등록 완료 되었습니다."));
         
             String[] loki = query.split(" ");
             if (loki[0].equals("insert")){
-                LogFetcher.addToDatabase(loki[1]);
+                LokiLogFetchService.addToDatabase(loki[1]);
+                ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Monitoring App이 정상적으로 등록 완료되었습니다."));
             }
             if (loki[0].equals("delete")){
-                LogFetcher.removeFromDatabase(loki[1]);
+                LokiLogFetchService.removeFromDatabase(loki[1]);
+                ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Monitoring App이 정상적으로 삭제 완료되었습니다."));
             }
         
             return ctx.ack();
