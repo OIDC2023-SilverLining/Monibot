@@ -39,7 +39,7 @@ public class LokiLogFetchService {
     @Scheduled(fixedRate = 45000)
     public void fetchLogs() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
-        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly in 3 sentences.";
+        String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly with 5 sentences.";
 
         String queryUrl = lokiServiceBaseUrl + "/loki/api/v1/query_range";
 
