@@ -54,11 +54,9 @@ public class GrafanaService {
     }
     public String getDashboardUrl(String expr) throws IOException {
 
-        if(datasourceUid==null){
-            setDataSource();
+        if(dashboardUid==null){
             createDashboard();
         }
-
         getDashboardVersion();
         return grafana_url + updateDashboard(expr);
     }
@@ -153,7 +151,7 @@ public class GrafanaService {
 
         JsonNode datasourceUidNode = jsonNode.at("/dashboard/panels/0/datasource/uid");
         if (datasourceUidNode.isNull() || datasourceUidNode.asText().isEmpty()) {
-            ((ObjectNode) jsonNode.at("/dashboard/panels/0/datasource")).put("uid", datasourceUid);
+            ((ObjectNode) jsonNode.at("/dashboard/panels/0/datasource")).put("uid", "prometheus");
         }
 
         JsonNode dashboardUidNode = jsonNode.at("/dashboard/uid");
@@ -171,7 +169,7 @@ public class GrafanaService {
                     targetsNode.elements().forEachRemaining(targetNode -> {
                         JsonNode targetDatasourceUidNode = targetNode.at("/datasource/uid");
                         if (targetDatasourceUidNode.isNull() || targetDatasourceUidNode.asText().isEmpty()) {
-                            ((ObjectNode) targetNode.at("/datasource")).put("uid", datasourceUid);
+                            ((ObjectNode) targetNode.at("/datasource")).put("uid", "prometheus");
                         }
 
                         ((ObjectNode) targetNode).put("expr", requestedExpr);
