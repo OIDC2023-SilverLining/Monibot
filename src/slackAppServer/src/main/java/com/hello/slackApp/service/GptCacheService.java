@@ -26,7 +26,6 @@ public class GptCacheService {
 
     public String getCachedResponse(String query){
         String url = cacheServerUrl + "/?query={query}";
-        log.info(url);
         try {
             ResponseEntity<String> result = restTemplate.getForEntity(url, String.class, query);
             if(result.getStatusCode() == HttpStatus.OK) {

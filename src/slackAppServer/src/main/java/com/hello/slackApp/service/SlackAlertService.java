@@ -109,7 +109,7 @@ public class SlackAlertService {
         restTemplate.postForEntity(webhookUrl, request, String.class);
     }
 
-    public void sendSlackNotificationMonitor(String gptResponse, String metricResult, String dashboardUrl){
+    public void sendSlackNotificationMonitor(String userId, String query, String gptResponse, String metricResult, String dashboardUrl){
         RestTemplate restTemplate = new RestTemplate();
         Map<String, Object> payload = new HashMap<>();
         List<Map<String, Object>> blocks = new ArrayList<>();
@@ -134,7 +134,10 @@ public class SlackAlertService {
         contentSection.put("type", "section");
         Map<String, Object> contentText = new HashMap<>();
         contentText.put("type", "mrkdwn");
-        contentText.put("text", ":robot_face: *GPT Answer* : \n"+ gptResponse + "\n:mag: *Metric Value* : \n" + metricResult +"\n:bar_chart: *Dashboard* : \n" + dashboardUrl);
+        contentText.put("text", ":question: " + userId + "님의 질문 : \n" + query + "\n" +
+                ":robot_face: *gpt answer* : \n" + gptResponse + "\n" +
+                ":mag: *Metric:* \n" + metricResult +"\n"+
+                ":bar_chart: *Dashboard:* \n" + dashboardUrl);
         contentSection.put("text", contentText);
         blocks.add(contentSection);
 
