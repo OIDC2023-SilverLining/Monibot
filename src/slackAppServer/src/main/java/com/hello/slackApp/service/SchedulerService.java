@@ -1,17 +1,20 @@
 package com.hello.slackApp.service;
 
-import java.io.UnsupportedEncodingException;
 import com.hello.slackApp.model.Alert;
 import com.hello.slackApp.repository.AlertRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class SchedulerService {
-    public int cnt = 0;
+    private final Map<String, Integer> alertCounts = new HashMap<>();
+
     @Autowired
     private AlertRepository alertRepository;
 
@@ -21,7 +24,11 @@ public class SchedulerService {
     @Autowired
     private PrometheusService prometheusService;
 
-    @Scheduled(fixedRate = 15000) // 5 seconds
+    public List<Alert> findAll() {
+        return alertRepository.findAll();
+    }
+
+    @Scheduled(fixedRate = 5000) // 5 seconds
     public void scheduledAlerts() {
         List<Alert> alerts = alertRepository.findAll();
         for (Alert alert : alerts) {
@@ -30,23 +37,30 @@ public class SchedulerService {
     }
 
     private void processAlert(Alert alert) {
-
         try {
             String metricResult = prometheusService.processQuery(alert.getMetric());
             double metricResultDouble = Double.parseDouble(metricResult);
-            int queryValue = alert.getQueryValue(); // No need for Integer.parseInt()
-
-            if ((alert.getCondition().equals("up") && queryValue <= metricResultDouble)
-                    || (alert.getCondition().equals("down") && queryValue >= metricResultDouble)) {
-                alert.incrementCount();
-
-                int duration = Integer.parseInt(alert.getDuration());
-                if (alert.getCount() >= duration / 5) {
+            int queryValue = alert.getQueryValue();
+    
+    
+            boolean conditionMet = (alert.getCondition().equals("up") && queryValue <= metricResultDouble)
+                    || (alert.getCondition().equals("down") && queryValue >= metricResultDouble);
+    
+            int duration = Integer.parseInt(alert.getDuration());
+    
+    
+            if (conditionMet) {
+                int count = alertCounts.getOrDefault(alert.getMetric(), 0) + 1;
+                alertCounts.put(alert.getMetric(), count);
+    
+    
+                if (count >= duration / 5) {
                     sendAlert(alert, metricResultDouble);
-                    alert.resetCount();
                 }
+            } else {
+                alertCounts.put(alert.getMetric(), 0); 
             }
-
+    
         } catch (NumberFormatException | UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -80,10 +94,13 @@ public class SchedulerService {
         alertRepository.save(alert);
     }
 
-    public void removeFromDatabase(String metric) {
-        Alert alert = alertRepository.findByMetric(metric);
-        if (alert != null) {
-            alertRepository.delete(alert.getMetric());
-        }
+    public void removeFromDatabase(String[] alertInput) {
+        String metric = alertInput[1];
+        String threshold = alertInput[2];
+        String condition = alertInput[3];
+        String duration = alertInput[4];
+
+        alertRepository.delete(metric, threshold, condition, duration);
     }
+
 }

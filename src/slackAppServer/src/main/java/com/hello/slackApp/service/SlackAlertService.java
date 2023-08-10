@@ -6,6 +6,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.hello.slackApp.model.Alert;
+import com.hello.slackApp.model.Loki;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,4 +151,92 @@ public class SlackAlertService {
         restTemplate.postForEntity(webhookUrl, request, String.class);
 
     }
+
+    public void sendSlackNotificationShow(List<Alert> alerts) {
+    RestTemplate restTemplate = new RestTemplate();
+    Map<String, Object> payload = new HashMap<>();
+    List<Map<String, Object>> blocks = new ArrayList<>();
+
+    // Header
+    Map<String, Object> headerSection = new HashMap<>();
+    headerSection.put("type", "header");
+    Map<String, Object> headerText = new HashMap<>();
+    headerText.put("type", "plain_text");
+    headerText.put("text", ":mag: Alert Metrics List");
+    headerSection.put("text", headerText);
+    blocks.add(headerSection);
+
+    // Header Divider
+    Map<String, Object> headerDivider = new HashMap<>();
+    headerDivider.put("type", "divider");
+    blocks.add(headerDivider);
+
+    // Alerts
+    for (Alert alert : alerts) {
+        Map<String, Object> section = new HashMap<>();
+        section.put("type", "section");
+        Map<String, Object> text = new HashMap<>();
+        text.put("type", "mrkdwn");
+        text.put("text", ":bell: *Metric:* " + alert.getMetric() + "\n:bar_chart: *Threshold:* " + alert.getThreshold() + "\n:bulb: *Condition:* " + alert.getCondition() + "\n:hourglass: *Duration:* " + alert.getDuration());
+        section.put("text", text);
+        blocks.add(section);
+
+        // Divider for each alert (optional)
+        Map<String, Object> divider = new HashMap<>();
+        divider.put("type", "divider");
+        blocks.add(divider);
+    }
+
+    payload.put("blocks", blocks);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+    restTemplate.postForEntity(webhookUrl, request, String.class);
+    }
+
+    public void sendSlackNotificationLokiLabels(List<Loki> lokis) {
+    RestTemplate restTemplate = new RestTemplate();
+    Map<String, Object> payload = new HashMap<>();
+    List<Map<String, Object>> blocks = new ArrayList<>();
+
+    // Header
+    Map<String, Object> headerSection = new HashMap<>();
+    headerSection.put("type", "header");
+    Map<String, Object> headerText = new HashMap<>();
+    headerText.put("type", "plain_text");
+    headerText.put("text", ":scroll: Loki Labels List");
+    headerSection.put("text", headerText);
+    blocks.add(headerSection);
+
+    // Header Divider
+    Map<String, Object> headerDivider = new HashMap<>();
+    headerDivider.put("type", "divider");
+    blocks.add(headerDivider);
+
+    // Loki Labels
+    for (Loki loki : lokis) {
+        Map<String, Object> section = new HashMap<>();
+        section.put("type", "section");
+        Map<String, Object> text = new HashMap<>();
+        text.put("type", "mrkdwn");
+        text.put("text", ":label: *Label:* " + loki.getLabel());
+        section.put("text", text);
+        blocks.add(section);
+
+        // Divider for each label (optional)
+        Map<String, Object> divider = new HashMap<>();
+        divider.put("type", "divider");
+        blocks.add(divider);
+    }
+
+    payload.put("blocks", blocks);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+    restTemplate.postForEntity(webhookUrl, request, String.class);
+    }
+
+
 }

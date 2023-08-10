@@ -1,6 +1,8 @@
 package com.hello.slackApp.config;
 
 import com.hello.slackApp.service.*;
+import com.hello.slackApp.model.Alert;
+import com.hello.slackApp.model.Loki;
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload;
 import com.slack.api.bolt.App;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.CompletableFuture;
@@ -121,8 +124,13 @@ public class SlackAppConfig {
                 ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Alert Metric이 정상적으로 등록 완료되었습니다."));
             }
             if (alert[0].equals("delete")){
-                schedulerService.removeFromDatabase(alert[1]);
+                schedulerService.removeFromDatabase(alert);
                 ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Alert Metric이 정상적으로 삭제 완료되었습니다."));
+            }
+
+            if (alert[0].equals("show")) {
+                List<Alert> alerts = schedulerService.findAll();
+                slackAlertService.sendSlackNotificationShow(alerts);
             }
         
             return ctx.ack();
@@ -142,7 +150,11 @@ public class SlackAppConfig {
                 LokiLogFetchService.removeFromDatabase(loki[1]);
                 ctx.respond(r -> r.responseType("in_channel").text(":white_check_mark: Monitoring App이 정상적으로 삭제 완료되었습니다."));
             }
-        
+            if (loki[0].equals("show")){
+                List<Loki> labels = LokiLogFetchService.getLabels();
+                slackAlertService.sendSlackNotificationLokiLabels(labels);
+            }
+
             return ctx.ack();
         });
 

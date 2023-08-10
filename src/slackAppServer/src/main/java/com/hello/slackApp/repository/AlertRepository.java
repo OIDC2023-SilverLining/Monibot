@@ -47,10 +47,11 @@ public class AlertRepository {
                         rs.getString("duration")));
     }    
 
-    public void delete(String metric) {
-        jdbcTemplate.update(
-                "DELETE FROM alerts WHERE metric = ?",
-                metric);
+    public void delete(String metric, String threshold, String condition, String duration) {
+    jdbcTemplate.update(
+            "DELETE FROM alerts WHERE metric = ? AND threshold = ? AND condition = ? AND duration = ?",
+            metric, threshold, condition, duration);
     }
-    
+
+ 
 }

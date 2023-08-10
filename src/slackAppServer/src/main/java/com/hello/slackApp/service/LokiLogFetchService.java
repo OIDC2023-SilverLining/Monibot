@@ -17,7 +17,6 @@ import com.hello.slackApp.repository.AlertLokiRepository;
 import com.hello.slackApp.model.Loki;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 @Service
 public class LokiLogFetchService {
 
@@ -26,7 +25,6 @@ public class LokiLogFetchService {
     @Value("${LOKI_SERVICE_URL}")
     private String lokiServiceBaseUrl;
 
-    
     @Autowired
     private ChatgptService chatgptService;
 
@@ -36,16 +34,23 @@ public class LokiLogFetchService {
     @Autowired
     private SlackAlertService slackAlertService;
 
-    @Scheduled(fixedRate = 45000)
+    public List<Loki> getLabels() {
+        return alertLokiRepository.findAll();
+    }
+
+    @Scheduled(fixedRate = 15000)
     public void fetchLogs() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
+
         String lokiPrompt = "Please explain the log above and explain how to solve it in Korean. Please explain it briefly with 5 sentences.";
 
         String queryUrl = lokiServiceBaseUrl + "/loki/api/v1/query_range";
 
         // Get all Loki labels from the database
         List<Loki> lokis = alertLokiRepository.findAll();
+
         for (Loki loki : lokis) {
+
             String appLabel = loki.getLabel();
 
             long now = Instant.now().toEpochMilli() * 1_000_000;
@@ -58,21 +63,27 @@ public class LokiLogFetchService {
                     .build()
                     .encode()
                     .toUri();
-
+            System.out.print(uri);
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            System.out.print(response);
 
             if (response.getStatusCode().is2xxSuccessful()) {
+
                 Map<String, Object> responseMap = objectMapper.readValue(response.getBody(), Map.class);
                 Map<String, Object> dataMap = (Map<String, Object>) responseMap.get("data");
                 List<Map<String, Object>> resultList = (List<Map<String, Object>>) dataMap.get("result");
 
                 for (Map<String, Object> result : resultList) {
                     List<List<String>> valuesList = (List<List<String>>) result.get("values");
+
                     for (List<String> values : valuesList) {
                         String logJson = values.get(1);
                         Map<String, String> logMap = objectMapper.readValue(logJson, Map.class);
-                        if (logMap.get("log").contains("Error")) {
+
+                        if (logMap.get("log").contains("ERROR")) {
+
                             String lokiErrorLog = logMap.get("log");
+
                             String lokiQuery = lokiErrorLog + lokiPrompt;
                             String gpt_resp = chatgptService.processSearch(lokiQuery);
                             if (!gpt_resp.equals("failed")) {
@@ -89,7 +100,7 @@ public class LokiLogFetchService {
 
     public Loki createLokiAlertFromInput(String labelInput) {
         String labelLokiInput = labelInput;
-        
+
         return new Loki(labelLokiInput);
     }
 
